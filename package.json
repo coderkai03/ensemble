@@ -9,15 +9,24 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.86",
+    "@clerk/nextjs": "^6.36.3",
+    "@elevenlabs/elevenlabs-js": "^2.28.0",
+    "@modelcontextprotocol/sdk": "^1.25.0",
+    "ai": "^5.0.113",
+    "elevenlabs": "^1.59.0",
     "next": "16.0.10",
     "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "react-dom": "19.2.1",
+    "react-markdown": "^10.1.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
     "tailwindcss": "^4",
