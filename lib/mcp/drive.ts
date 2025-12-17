@@ -50,7 +50,8 @@ async function getMcpClient(): Promise<Client> {
  */
 export async function createDocument(
   title: string,
-  content: string
+  content: string,
+  userEmail?: string
 ): Promise<CreateDocumentResult> {
   try {
     const client = await getMcpClient();
@@ -61,6 +62,12 @@ export async function createDocument(
       arguments: {
         title,
         content,
+        // Service and user email are required by the google_workspace_mcp server
+        user_google_email:
+          userEmail ||
+          process.env.GOOGLE_WORKSPACE_USER_GOOGLE_EMAIL ||
+          process.env.GOOGLE_WORKSPACE_USER_EMAIL ||
+          "",
       },
     });
 

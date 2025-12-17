@@ -7,6 +7,7 @@ import type {
   Message,
   ProjectState,
   SetProjectArgs,
+  SetEmailArgs,
   GenerateDocumentArgs,
   CompleteTaskArgs,
 } from "@/lib/types";
@@ -307,6 +308,7 @@ function ChatMessage({
 // Tool call handlers type
 type ToolCallHandlers = {
   onSetProject: (args: SetProjectArgs) => void;
+  onSetEmail: (args: SetEmailArgs) => void;
   onGenerateDocument: (args: GenerateDocumentArgs) => void;
   onCompleteTask: (args: CompleteTaskArgs) => void;
 };
@@ -316,6 +318,7 @@ function ChatUI() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [projectState, setProjectState] = useState<ProjectState | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
@@ -454,6 +457,11 @@ function ChatUI() {
                       event.toolCall.args as SetProjectArgs
                     );
                     break;
+                  case "setEmail":
+                    toolHandlers.onSetEmail(
+                      event.toolCall.args as SetEmailArgs
+                    );
+                    break;
                   case "generateDocument":
                     toolHandlers.onGenerateDocument(
                       event.toolCall.args as GenerateDocumentArgs
@@ -516,6 +524,7 @@ function ChatUI() {
         },
         {
           onSetProject: () => {},
+          onSetEmail: () => {},
           onGenerateDocument: () => {},
           onCompleteTask: () => {},
         }
@@ -557,11 +566,18 @@ function ChatUI() {
     let pendingDocumentArgs: GenerateDocumentArgs | null = null;
 
     try {
+      // Build the full conversation history for the API
+      const conversationMessages = [
+        ...messages,
+        { id: userMessage.id, role: "user" as const, content: userPrompt },
+      ];
+
       const response = await fetch("/api/agent/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: userPrompt,
+          messages: conversationMessages,
+          userEmail: userEmail,
         }),
       });
 
@@ -591,6 +607,9 @@ function ChatUI() {
               document: prev?.document || "",
               tasks: prev?.tasks || [],
             }));
+          },
+          onSetEmail: (args) => {
+            setUserEmail(args.email);
           },
           onGenerateDocument: (args) => {
             // Store for later - we'll generate after streaming completes
@@ -625,6 +644,7 @@ function ChatUI() {
             body: JSON.stringify({
               projectName: currentProjectName,
               document: docContent,
+              userEmail,
             }),
           });
 

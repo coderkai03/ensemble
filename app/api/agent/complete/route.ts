@@ -11,12 +11,16 @@ const TASK_TEMPLATES = [
 ];
 
 export async function POST(req: Request) {
-  const { projectName, document }: { projectName: string; document: string } =
+  const {
+    projectName,
+    document,
+    userEmail,
+  }: { projectName: string; document: string; userEmail?: string } =
     await req.json();
 
   // Step 1: Persist document to Google Drive
   const docTitle = `${projectName} – Project Overview`;
-  const docResult = await createDocument(docTitle, document);
+  const docResult = await createDocument(docTitle, document, userEmail);
 
   // Check if auth is required
   if (docResult.authRequired && docResult.authUrl) {

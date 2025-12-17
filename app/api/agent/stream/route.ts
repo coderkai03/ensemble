@@ -1,7 +1,7 @@
-import { streamText } from "ai";
+import { streamText, type CoreMessage } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
-import type { StreamEvent } from "@/lib/types";
+import type { StreamEvent, Message } from "@/lib/types";
 import { SYSTEM_PROMPT } from "@/lib/systemPrompt";
 
 // Allow streaming responses up to 30 seconds
@@ -13,7 +13,19 @@ function formatSSE(event: StreamEvent): string {
 }
 
 export async function POST(req: Request) {
-  const { prompt }: { prompt: string } = await req.json();
+  const { messages, userEmail }: { messages: Message[]; userEmail?: string } =
+    await req.json();
+
+  // Convert our simple Message type to CoreMessage format
+  const coreMessages: CoreMessage[] = messages.map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
+
+  // Build dynamic system prompt with email context
+  const emailContext = userEmail
+    ? `\n\n## User Context\nUser's Gmail: ${userEmail} (already set, do not ask again)`
+    : `\n\n## User Context\nUser's Gmail: NOT SET. You MUST call setEmail before calling generateDocument.`;
 
   const encoder = new TextEncoder();
 
@@ -22,8 +34,8 @@ export async function POST(req: Request) {
       try {
         const result = streamText({
           model: openai("gpt-4o"),
-          system: SYSTEM_PROMPT,
-          prompt,
+          system: SYSTEM_PROMPT + emailContext,
+          messages: coreMessages,
           tools: {
             setProject: {
               description:
@@ -32,9 +44,19 @@ export async function POST(req: Request) {
                 name: z.string().describe("A concise, descriptive project name"),
               }),
             },
+            setEmail: {
+              description:
+                "Set the user's Gmail address for Google Workspace integration. MUST be called before generateDocument if email is not already set. Ask the user for their Gmail if needed.",
+              inputSchema: z.object({
+                email: z
+                  .string()
+                  .email()
+                  .describe("The user's Gmail address (e.g. user@gmail.com)"),
+              }),
+            },
             generateDocument: {
               description:
-                "Generate a formal document like a Product Brief or PRD. Call this when you have enough information to create a document.",
+                "Generate a formal document like a Product Brief or PRD. REQUIRES: setEmail must be called first if user email is not set. Call this when you have enough information to create a document.",
               inputSchema: z.object({
                 type: z
                   .enum(["brief", "prd", "spec"])
@@ -72,6 +94,7 @@ export async function POST(req: Request) {
                     toolCall: {
                       name: part.toolName as
                         | "setProject"
+                        | "setEmail"
                         | "generateDocument"
                         | "completeTask",
                       args: part.input as Record<string, unknown>,

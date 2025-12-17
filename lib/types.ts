@@ -18,10 +18,14 @@ export type Message = {
 };
 
 // Tool call types
-export type ToolCallType = "setProject" | "generateDocument" | "completeTask";
+export type ToolCallType = "setProject" | "setEmail" | "generateDocument" | "completeTask";
 
 export type SetProjectArgs = {
   name: string;
+};
+
+export type SetEmailArgs = {
+  email: string;
 };
 
 export type GenerateDocumentArgs = {
@@ -47,9 +51,11 @@ export type StreamEvent = {
 
 // Helper to parse SSE data lines
 export function parseStreamEvent(line: string): StreamEvent | null {
-  if (!line.startsWith("data: ")) return null;
+  // Be robust to different line endings / extra whitespace (e.g. "\r\n")
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("data: ")) return null;
   try {
-    const json = line.slice(6); // Remove "data: " prefix
+    const json = trimmed.slice(6); // Remove "data: " prefix
     return JSON.parse(json) as StreamEvent;
   } catch {
     return null;
