@@ -124,3 +124,119 @@ body {
 .animate-pulse-dot {
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
+
+/* ========================================
+   Canvas Panel Layout (ChatGPT-style)
+   ======================================== */
+
+/* Chat panel - main conversation area */
+.chat-panel {
+  transition: width 0.3s ease-in-out;
+  flex-shrink: 0;
+}
+
+.chat-panel-full {
+  width: 100%;
+}
+
+.chat-panel-with-canvas {
+  width: 50%;
+}
+
+/* Canvas panel - document preview sidebar */
+.canvas-panel {
+  position: fixed;
+  top: 4rem;
+  right: 0;
+  height: calc(100vh - 4rem);
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  z-index: 40;
+}
+
+.canvas-panel-open {
+  width: 50%;
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.canvas-panel-closed {
+  width: 50%;
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Responsive: stack on smaller screens */
+@media (max-width: 1024px) {
+  .chat-panel-with-canvas {
+    width: 100%;
+  }
+
+  .canvas-panel {
+    width: 100%;
+    top: 0;
+    height: 100vh;
+    z-index: 50;
+  }
+
+  .canvas-panel-open {
+    width: 100%;
+  }
+
+  .canvas-panel-closed {
+    width: 100%;
+  }
+}
+
+/* Medium screens: 60/40 split */
+@media (min-width: 1025px) and (max-width: 1400px) {
+  .chat-panel-with-canvas {
+    width: 55%;
+  }
+
+  .canvas-panel-open {
+    width: 45%;
+  }
+
+  .canvas-panel-closed {
+    width: 45%;
+  }
+}
+
+/* Large screens: 50/50 split */
+@media (min-width: 1401px) {
+  .chat-panel-with-canvas {
+    width: 50%;
+  }
+
+  .canvas-panel-open {
+    width: 50%;
+  }
+
+  .canvas-panel-closed {
+    width: 50%;
+  }
+}
+
+/* Canvas slide-in animation */
+@keyframes canvas-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Canvas content styling */
+.canvas-panel .prose {
+  max-width: none;
+}
+
+.canvas-panel .prose h1:first-child,
+.canvas-panel .prose h2:first-child,
+.canvas-panel .prose h3:first-child {
+  margin-top: 0;
+}

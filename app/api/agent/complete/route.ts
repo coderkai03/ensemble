@@ -16,7 +16,19 @@ export async function POST(req: Request) {
 
   // Step 1: Persist document to Google Drive
   const docTitle = `${projectName} – Project Overview`;
-  const { docUrl } = await createDocument(docTitle, document);
+  const docResult = await createDocument(docTitle, document);
+
+  // Check if auth is required
+  if (docResult.authRequired && docResult.authUrl) {
+    return Response.json({
+      authRequired: true,
+      authUrl: docResult.authUrl,
+      tasks: [],
+      docUrl: "#",
+    });
+  }
+
+  const { docUrl } = docResult;
 
   // Step 2: Derive deterministic tasks
   const taskTitles = TASK_TEMPLATES;
@@ -42,6 +54,6 @@ export async function POST(req: Request) {
   return Response.json({
     tasks,
     docUrl,
+    authRequired: false,
   });
 }
-
